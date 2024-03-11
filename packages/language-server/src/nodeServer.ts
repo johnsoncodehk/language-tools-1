@@ -1,7 +1,8 @@
 import {
 	createConnection,
 	createServer,
-	createTypeScriptProjectProvider,
+	createTypeScriptProjectProviderFactory,
+	loadTsdkByPath,
 } from '@volar/language-server/node';
 import { createServerOptions } from './languageServerPlugin.js';
 
@@ -11,10 +12,11 @@ const server = createServer(connection);
 connection.listen();
 
 connection.onInitialize((params) => {
+	const tsdk = loadTsdkByPath(params.initializationOptions.typescript.tsdk, params.locale);
 	return server.initialize(
 		params,
-		createTypeScriptProjectProvider,
-		createServerOptions(connection, server)
+		createTypeScriptProjectProviderFactory(tsdk.typescript, tsdk.diagnosticMessages),
+		createServerOptions(tsdk.typescript, connection)
 	);
 });
 

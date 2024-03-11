@@ -4,6 +4,7 @@ import {
 	MessageType,
 	ShowMessageNotification,
 	VirtualCode,
+	loadTsdkByPath,
 } from '@volar/language-server/node';
 import { getLanguageModule } from './core';
 import { getSvelteLanguageModule } from './core/svelte.js';
@@ -24,8 +25,8 @@ import { create as createTypescriptAddonsService } from './plugins/typescript-ad
 import { create as createTypeScriptService } from './plugins/typescript/index.js';
 
 export function createServerOptions(
-	connection: Connection,
-	server: ReturnType<typeof createServerBase>
+	ts: typeof import('typescript'),
+	connection: Connection
 ): ServerOptions {
 	return {
 		watchFileExtensions: [
@@ -43,7 +44,6 @@ export function createServerOptions(
 			'svelte',
 		],
 		getServicePlugins() {
-			const ts = getTypeScriptModule();
 			return [
 				createHtmlService(),
 				createCssService(),
@@ -56,7 +56,6 @@ export function createServerOptions(
 			];
 		},
 		getLanguagePlugins(serviceEnv, projectContext) {
-			const ts = getTypeScriptModule();
 			const languagePlugins: LanguagePlugin<VirtualCode>[] = [
 				getVueLanguageModule(),
 				getSvelteLanguageModule(),
@@ -66,7 +65,7 @@ export function createServerOptions(
 				const rootPath = projectContext.typescript.configFileName
 					? projectContext.typescript.configFileName.split('/').slice(0, -1).join('/')
 					: serviceEnv.typescript!.uriToFileName(serviceEnv.workspaceFolder);
-				const nearestPackageJson = server.modules.typescript?.findConfigFile(
+				const nearestPackageJson = ts.findConfigFile(
 					rootPath,
 					ts.sys.fileExists,
 					'package.json'
@@ -92,14 +91,6 @@ export function createServerOptions(
 			return languagePlugins;
 		},
 	};
-
-	function getTypeScriptModule() {
-		const tsModule = server.modules.typescript;
-		if (!tsModule) {
-			throw new Error('TypeScript module is missing');
-		}
-		return tsModule;
-	}
 
 	function getPrettierService() {
 		let prettier: ReturnType<typeof importPrettier>;

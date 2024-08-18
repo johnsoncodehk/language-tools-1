@@ -103,4 +103,11 @@ connection.onInitialized(() => {
 	}
 
 	server.watchFiles([`**/*.{${extensions.join(',')}}`]);
+
+	server.watchFiles(['**/*.schema.json']);
+	server.onDidChangeWatchedFiles(({ changes }) => {
+		if (changes.some((change) => change.uri.endsWith('.schema.json'))) {
+			server.refresh(server.project);
+		}
+	});
 });

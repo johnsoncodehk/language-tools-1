@@ -54,18 +54,9 @@ export const create = (collectionConfigs: CollectionConfig[]): LanguageServicePl
 			const languageService = yamlPluginInstance.provide?.['yaml/languageService']();
 			if (languageService && context.env.onDidChangeWatchedFiles) {
 				context.env.onDidChangeWatchedFiles(async (events) => {
-					let hasChanges = false;
-
 					for (const change of events.changes) {
 						if (!change.uri.endsWith('.schema.json')) return;
-
-						if (languageService.resetSchema(change.uri)) {
-							hasChanges = true;
-						}
-					}
-
-					if (hasChanges) {
-						// TODO: Figure out how to refresh the diagnostics
+						languageService.resetSchema(change.uri);
 					}
 				});
 			}
